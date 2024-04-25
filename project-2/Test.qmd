@@ -1,0 +1,101 @@
+---
+title: "The condition of countries and its impact on the overall well-being and living conditions of a country's population specially children."
+subtitle: "Quorto report"
+author: "Mishi Chandrakar"
+date: "24-04-2024"
+format:
+  html:
+    theme: metro
+    backgroundcolor: lightblue
+execute:
+ echo: false
+ warning: false
+ message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+
+#library
+library(tidyverse)
+library(plotly)
+library(dplyr)
+library(maps)
+
+
+unicef_metadata <- read.csv("/cloud/project/unicef_metadata.csv")
+unicef_indicator_1 <- read_csv("unicef_indicator_1.csv")
+world_map <- map_data("world")
+
+
+# Convert time_period column to numeric in unicef_indicator_1
+unicef_indicator_1 <- mutate(unicef_indicator_1, year = as.numeric(time_period))
+
+# Merge the datasets
+merged_data <- merge( world_map , unicef_indicator_1, by.x = "region" , by.y ="country" , all.x = TRUE)
+```
+**The World Map chart created provides a broader context or geographical overview of the countries included in the Bar Graph. Ihe worldmap chart shows the distribution of countries and their regions, while the Bar Graph provides a more detailed comparison of the percentage of children suffering from four deprivations within those countries.
+The Scatterplot created depicts the relationship between life expectancy and GDP per capita. This relationship has an impact on the overall well-being and living conditions of a country's population, including children. The Time Series Chart, on the other hand, shows the world population over time. Changes in population dynamics, such as growth or decline, influenced by various factors, including economic conditions and public health indicators like life expectancy.**
+
+# This chart provides an overview of the variation in the percentage of children suffering from four deprivations across different countries.
+
+***The first graph is a world map chart created.This chart provides an overview of the variation in the percentage of children suffering from four deprivations across different countries. It visualizes the obs_value that is percentage of children suffering from four deprivations on a world map. Each country is represented by a region on the map, and the fill color represents the observed value. The gradient from blue to red indicates the range of values, with blue representing lower values and red representing higher values.***
+```{r}
+# Creating a World Map chart
+ggplot() +
+  geom_map(data = merged_data, map = merged_data,
+           aes(x = long, y = lat, map_id = region, fill = obs_value),
+           ) +
+  scale_fill_gradient(low = "blue", high = "red") +
+  theme_void()
+
+```
+# The graph compares the percentage of children suffering from four deprivations in different countries.
+
+**The second graph is a bar graph. Each country is represented on the x-axis, and the y-axis represents the percentage. The bars are grouped by sex, indicated by different fill colors (blue for female, green for male, and purple for total). This graph allows for easy comparison of the percentage of children suffering from four deprivations across countries and provides insights into the distribution based on sex.**
+```{r}
+#Creating bar graph
+bar_chart <- ggplot(unicef_indicator_1, aes(x = country, y = obs_value, fill = sex)) +
+  geom_bar(stat = "identity", position = "dodge", width = 0.8) +
+  labs(title = "Percentage of Children Suffering Four Deprivation",
+       x = "Country", y = "Percentage",
+       fill = "Sex") +
+  theme_minimal() +
+  scale_fill_manual(values = c("Female" = "blue", "Male" = "green", "Total" = "purple")) +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5)) +  # Rotating x-axis labels vertically
+  guides(fill = guide_legend(title = "Sex"))  # Adding a legend title
+
+print(bar_chart)
+```
+# The graph visualizes the relationship between life expectancy at birth and GDP per capita (constant 2015 US$).
+
+**The third graph is a scatterplot created using the unicef_metadata dataset. It visualizes the relationship between life expectancy at birth and GDP per capita (constant 2015 US$). Each data point represents a country, with the x-axis representing life expectancy and the y-axis representing GDP per capita. The scatterplot also includes a linear regression line that shows the overall trend between the two variables. This graph helps understand the correlation between life expectancy and economic prosperity across different countries.**
+```{r}
+# Rename the column
+colnames(unicef_metadata)[8] <- "GDP_per_capita_constant_2015_US"
+
+# Creating scatterplot with a linear regression line
+scatterplot <- ggplot(unicef_metadata, aes(x = `Life.expectancy.at.birth..total..years.`, y = GDP_per_capita_constant_2015_US)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(title = "Life Expectancy vs. GDP per Capita",
+       x = "Life Expectancy (years)", y = "GDP per Capita (constant 2015 US$)") +
+ scale_color_manual(values = "red")
+print(scatterplot)
+```
+# This graph shows the world population over time.
+
+**The fourth graph is a time series chart created using the unicef_metadata dataset. It shows the world population over time. The x-axis represents years, and the y-axis represents the total population. The line plot connects the data points to visualize the trend in population growth. This graph allows for the examination of population changes and trends over the specified time period.**
+```{r}
+#Creating Time series
+time_series_chart <- ggplot(unicef_metadata, aes(x = year, y = Population..total)) +
+  geom_line()
+  labs(title = "World Population Over Time",
+       x = "Year", y = "Population Total") +
+theme_minimal()  
+print(time_series_chart)
+```
+
+
+
